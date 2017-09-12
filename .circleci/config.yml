@@ -1,61 +1,42 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/myapp
+    parallelism: 3
+    working_directory: ~/circleci-demo-ruby-rails
     docker:
-      - image: circleci/ruby:2.3-node
+      - image: circleci/ruby:2.4.1-node
         environment:
-          PGHOST: 127.0.0.1
-          PGUSER: myapp-test
           RAILS_ENV: test
-      - image: circleci/postgres:9.5-alpine
-        environment:
-          POSTGRES_USER: myapp
-          POSTGRES_DB: myapp-test
-          POSTGRES_PASSWORD: ""
+      - image: circleci/postgres:9.4.12-alpine
     steps:
       - checkout
 
+      # Restore bundle cache
       - type: cache-restore
-        name: Restore bundle cache
-        key: myapp-bundle-{{ checksum "Gemfile.lock" }}
+        key: rails-demo-{{ checksum "Gemfile.lock" }}
 
-      - type: cache-restore
-        name: Restore yarn cache
-        key: myapp-yarn-{{ checksum "yarn.lock" }}
+      # Bundle install dependencies
+      - run: bundle install --path vendor/bundle
 
-      - run:
-          name: Bundle Install
-          command: bin/bundle install --path vendor/bundle
-
-      - run:
-          name: Yarn Install
-          command: yarn install
-
+      # Store bundle cache
       - type: cache-save
-        name: Store bundle cache
-        key: myapp-bundle-{{ checksum "Gemfile.lock" }}
+        key: rails-demo-{{ checksum "Gemfile.lock" }}
         paths:
           - vendor/bundle
 
-      - type: cache-save
-        name: Store yarn cache
-        key: myapp-yarn-{{ checksum "yarn.lock" }}
-        paths:
-          - ~/.yarn-cache
+      # Database setup
+      - run: bundle exec rake db:create
+      - run: bundle exec rake db:schema:load
 
-      - run:
-          name: Rubocop
-          command: bin/rubocop --rails
+      # Run rspec in parallel
+      - type: shell
+        command: |
+          bundle exec rspec --profile 10 \
+                            --format RspecJunitFormatter \
+                            --out /tmp/test-results/rspec.xml \
+                            --format progress \
+                            $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
 
-      - run:
-          name: Wait for DB
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-
-      - run:
-          name: Database setup
-          command: bin/rails db:schema:load --trace
-
-      - run:
-          name: Run tests
-          command: bin/rails test
+      # Save artifacts
+      - type: store_test_results
+        path: /tmp/test-results
