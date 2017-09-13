@@ -9,7 +9,7 @@ jobs:
       - PG_USER=mario
       - RAILS_ENV=test
       - RACK_ENV=test
-      - image: postgres:9.5
+    - image: postgres:9.5
       environment:
         - POSTGRES_USER=ubuntu
         - POSTGRES_DB=db_name
