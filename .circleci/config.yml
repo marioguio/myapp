@@ -1,50 +1,37 @@
 version: 2
 jobs:
   build:
-    ruby:
-      version:
-         2.3.3
+    working_directory: ~/myapp
+    - image: ruby:2.3.3
+    environment:
+      - PG_HOST=localhost
+      - PG_USER=mario
+      - RAILS_ENV=test
+      - RACK_ENV=test
+      - image: postgres:9.5
+      environment:
+        - POSTGRES_USER=ubuntu
+        - POSTGRES_DB=db_name
 
-    steps:
-      - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "Gemfile.lock" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
-      - run:
-          name: install dependencies
+        steps:
+          - checkout
+          - name: Install System Dependencies
+          command: apt-get update -qq && apt-get install -y build-essential postgresql libpq-dev nodejs rake
+          - name: Install Ruby Dependencies
+          command: bundle install
+          - name: Set up DB
           command: |
-            bundle install --jobs=4 --retry=3 --path vendor/bundle
+          bundle exec rake db:create db:schema:load --trace
+          bundle exec rake db:migrate
+          environment:
+            DATABASE_URL: "postgres://ubuntu@localhost:5432/db_name"
+            # Add the Postgres 9.6 binaries to the path.
+            - run: echo ‘/usr/lib/postgresql/9.6/bin/:$PATH’ >> $BASH_ENV
+            - run:
+              # Add a password to the `ubuntu` user, since Postgres is configured to
+              # always ask for a password without sudo, and fails without one.
+              command: sudo -u postgres psql -p 5433 -c "create user ubuntu with password ‘ubuntu’;”
+              command: sudo -u postgres psql -p 5433 -c "alter user ubuntu with superuser;"
 
-      - save_cache:
-          paths:
-            - ./vendor/bundle
-          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
-
-      # Database setup
-      - run: bundle exec rake db:create
-      - run: bundle exec rake db:schema:load
-
-      # run tests!
-      - run:
-          name: run tests
-          command: |
-            mkdir /tmp/test-results
-            TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
-
-            bundle exec rspec --format progress \
-                            --format RspecJunitFormatter \
-                            --out /tmp/test-results/rspec.xml \
-                            --format progress \
-                            "${TEST_FILES}"
-
-      # collect reports
-      - store_test_results:
-          path: /tmp/test-results
-      - store_artifacts:
-          path: /tmp/test-results
-          destination: test-results
+              # Create a new test database.
+              command: sudo -u postgres psql -p 5433 -c "create database test;"
