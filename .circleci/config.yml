@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/myapp
     docker:
-      - image: circleci/ruby:2.3-node
+      - image: circleci/ruby:2.3.3-node
         environment:
           PGHOST: 127.0.0.1
           PGUSER: mario
@@ -22,7 +22,9 @@ jobs:
             - myapp-bundle-{{ checksum "Gemfile.lock" }}
             - myapp-bundle-
 
-
+      - run:
+          name: Update bundler
+          command: gem install bundler --pre
       - run:
           name: Bundle Install
           command: bin/bundle check --path vendor/bundle ||  bin/bundle install --path vendor/bundle --jobs 4 --retry 3
