@@ -48,9 +48,6 @@ jobs:
           paths:
             - ~/.yarn-cache
 
-      - run:
-          name: Rubocop
-          command: bin/rubocop --rails
 
       - run:
           name: Wait for DB
