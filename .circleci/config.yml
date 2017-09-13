@@ -3,36 +3,63 @@ jobs:
   build:
     working_directory: ~/myapp
     docker:
-    - image: ruby:2.3.4
-    environment:
-      - PG_HOST=localhost
-      - PG_USER=mario
-      - RAILS_ENV=test
-      - RACK_ENV=test
-    - image: postgres:9.5
-      environment:
-        - POSTGRES_USER=ubuntu
-        - POSTGRES_DB=db_name
+      - image: circleci/ruby:2.3-node
+        environment:
+          PGHOST: 127.0.0.1
+          PGUSER: myapp-test
+          RAILS_ENV: test
+      - image: circleci/postgres:9.5-alpine
+        environment:
+          POSTGRES_USER: myapp
+          POSTGRES_DB: myapp-test
+          POSTGRES_PASSWORD: ""
+    steps:
+      - checkout
 
-        steps:
-          - checkout
-          - name: Install System Dependencies
-          command: apt-get update -qq && apt-get install -y build-essential postgresql libpq-dev nodejs rake
-          - name: Install Ruby Dependencies
-          command: bundle install
-          - name: Set up DB
-          command: |
-          bundle exec rake db:create db:schema:load --trace
-          bundle exec rake db:migrate
-          environment:
-            DATABASE_URL: "postgres://ubuntu@localhost:5432/db_name"
-            # Add the Postgres 9.6 binaries to the path.
-            - run: echo ‘/usr/lib/postgresql/9.6/bin/:$PATH’ >> $BASH_ENV
-            - run:
-              # Add a password to the `ubuntu` user, since Postgres is configured to
-              # always ask for a password without sudo, and fails without one.
-              command: sudo -u postgres psql -p 5433 -c "create user ubuntu with password ‘ubuntu’;”
-              command: sudo -u postgres psql -p 5433 -c "alter user ubuntu with superuser;"
+      - restore_cache:
+          name: Restore bundle cache
+          keys:
+            - myapp-bundle-{{ checksum "Gemfile.lock" }}
+            - myapp-bundle-
 
-              # Create a new test database.
-              command: sudo -u postgres psql -p 5433 -c "create database test;"
+      - restore_cache:
+          name: Restore yarn cache
+          keys:
+            - myapp-yarn-{{ checksum "yarn.lock" }}
+            - myapp-yarn-
+
+      - run:
+          name: Bundle Install
+          command: bin/bundle check --path vendor/bundle ||  bin/bundle install --path vendor/bundle --jobs 4 --retry 3
+
+      - run:
+          name: Yarn Install
+          command: yarn install
+
+      - save_cache:
+          name: Store bundle cache
+          key: myapp-bundle-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+      - save_cache:
+          name: Store yarn cache
+          key: myapp-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.yarn-cache
+
+      - run:
+          name: Rubocop
+          command: bin/rubocop --rails
+
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run:
+          name: Database setup
+          command: bin/rails db:schema:load --trace
+
+      - run:
+          name: Run tests
+          command: bin/rails test
