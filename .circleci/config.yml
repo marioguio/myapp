@@ -25,6 +25,9 @@ jobs:
       - run:
           name: Update bundler
           command: gem install bundler --pre
+      -run:
+        name: bundle install
+        command: bundle install 
       - run:
           name: Bundle Install
           command: bin/bundle check --path vendor/bundle ||  bin/bundle install --path vendor/bundle --jobs 4 --retry 3
