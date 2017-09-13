@@ -2,7 +2,8 @@ version: 2
 jobs:
   build:
     working_directory: ~/myapp
-    - image: ruby:2.3.3
+    docker:
+    - image: ruby:2.3.4
     environment:
       - PG_HOST=localhost
       - PG_USER=mario
