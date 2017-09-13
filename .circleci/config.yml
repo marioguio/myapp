@@ -37,11 +37,6 @@ jobs:
           paths:
             - vendor/bundle
 
-      - save_cache:
-          name: Store yarn cache
-          key: myapp-yarn-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.yarn-cache
 
 
       - run:
