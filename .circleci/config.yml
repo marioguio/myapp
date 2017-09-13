@@ -10,8 +10,8 @@ jobs:
           RAILS_ENV: test
       - image: circleci/postgres:9.5-alpine
         environment:
-          POSTGRES_USER: myapp
-          POSTGRES_DB: myapp-test
+          POSTGRES_USER: mario
+          POSTGRES_DB: mario
           POSTGRES_PASSWORD: ""
     steps:
       - checkout
