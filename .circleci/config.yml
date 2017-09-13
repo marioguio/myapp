@@ -47,7 +47,9 @@ jobs:
       - run:
           name: Wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
-
+      - run:
+          name: Database load
+          command: bin/rails db:environment:set RAILS_ENV=development
       - run:
           name: Database setup
           command: bin/rails db:schema:load --trace
