@@ -2,7 +2,11 @@
   steps:
   - name: rspec
     service: web_codeship_example_ruby
-    command: bin/ci rspec
-  - name: rubocop
-    service: web_codeship_example_ruby
-    command: rubocop
+    command: bin/rails db:environment:set RAILS_ENV=development
+
+
+    service: Database setup
+    command: bin/rails db:schema:load --trace
+    
+    service:  Run tests
+    command: bin/rails test
