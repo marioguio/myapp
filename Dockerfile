@@ -9,5 +9,7 @@ COPY Gemfile.lock ./Gemfile.lock
 
 RUN gem install bundle --pre
 
+RUN gem install uglifier
+
 RUN bundle install
 COPY . .
