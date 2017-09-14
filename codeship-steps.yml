@@ -4,9 +4,10 @@
     service: web_codeship_example_ruby
     command: bin/rails db:environment:set RAILS_ENV=development
 
-
+  - name: rspec2
     service: Database setup
     command: bin/rails db:schema:load --trace
-    
+
+  - name: rspec3
     service:  Run tests
     command: bin/rails test
