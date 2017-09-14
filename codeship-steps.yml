@@ -1,5 +1,5 @@
 - type: parallel
   steps:
   - name: rspec
-    service: web_codeship_example_rubyS
+    service: web_codeship_example_ruby
     command: bin/rails test
