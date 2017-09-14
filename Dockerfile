@@ -1,6 +1,6 @@
 FROM ruby:2.3.3
 
-RUN apk update && apk add nodejs build-base libxml2-dev libxslt-dev postgresql postgresql-dev
+
 RUN mkdir /app
 WORKDIR /app
 
