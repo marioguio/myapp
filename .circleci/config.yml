@@ -13,8 +13,10 @@ jobs:
           POSTGRES_USER: mario
           POSTGRES_DB: mario
           POSTGRES_PASSWORD: ""
-    ste
-      - checkout     - restore_cache:
+    steps:
+      - checkout
+
+      - restore_cache:
           name: Restore bundle cache
           keys:
             - myapp-bundle-{{ checksum "Gemfile.lock" }}
