@@ -8,4 +8,4 @@ demo:
 redis:
   image: redis:3.0.5
 postgres:
-   image: postgres:9.3.6
+   image: postgres:9.5.8
