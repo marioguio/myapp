@@ -1,15 +1,16 @@
+# base on latest ruby base image
 FROM ruby:2.3.3
 
 
+
+# setup app folders
 RUN mkdir /app
 WORKDIR /app
 
-COPY Gemfile ./Gemfile
-COPY Gemfile.lock ./Gemfile.lock
+# copy over Gemfile and install bundle
+ADD Gemfile /app/Gemfile
+ADD Gemfile.lock /app/Gemfile.lock
+RUN gem install bundle --pre 
+RUN bundle install --jobs 20 --retry 5
 
-RUN gem install bundle --pre
-
-RUN gem install uglifier
-
-RUN bundle install
-COPY . .
+Add . /app
