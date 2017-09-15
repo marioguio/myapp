@@ -23,7 +23,7 @@ default: &default
 
 development:
   <<: *default
-  database: postgres
+  database: mario
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
@@ -57,7 +57,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: mario 
+  database: mario
 
 
 # As with config/secrets.yml, you never want to store sensitive information,
@@ -81,6 +81,6 @@ test:
 #
 production:
   <<: *default
-  database: myapp_production
-  username: myapp
+  database: mario
+  username: mario
   password: <%= ENV['MYAPP_DATABASE_PASSWORD'] %>
