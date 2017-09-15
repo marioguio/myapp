@@ -1,4 +1,3 @@
-require "redis"
 require "pg"
 
 def exit_if_not(expected, current)
@@ -6,10 +5,6 @@ def exit_if_not(expected, current)
   puts "Current: #{current}"
   exit(1) if expected != current
 end
-
-puts "Redis"
-redis = Redis.new(host: "redis")
-puts "REDIS VERSION: #{redis.info["redis_version"]}"
 
 sleep 4
 postgres_username = "postgres"

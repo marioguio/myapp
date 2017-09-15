@@ -3,9 +3,7 @@ demo:
     image: myapp
     dockerfile: Dockerfile
   links:
-    - redis
     - postgres
-redis:
-  image: redis:2.6.17
+
 postgres:
    image: postgres:9.5.8
